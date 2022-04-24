@@ -130,7 +130,7 @@ class TrackDetector():
                                                                                         best_line_right, 
                                                                                         best_dist_right)
                 if self.send_debug:
-                    cv.line(image, [p1_u, p1_v], [p2_u, p2_v], (0,0,255), 3, cv.LINE_AA)
+                    cv.line(image, (p1_u, p1_v), (p2_u, p2_v), (0,0,255), 3, cv.LINE_AA)
         
         return best_line_left, best_line_right
 
