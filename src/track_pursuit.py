@@ -25,6 +25,8 @@ class TrackPursuit(object):
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
+        self.front_point        = 3 # look at 3 meters ahead
+        self.half_track_width   = 0.83 / 2.0
 
         # publish drive commands
         drive_msg = AckermannDriveStamped()
@@ -55,15 +57,28 @@ class TrackPursuit(object):
         b_1    = track_msg.intercept_left
         m_2    = track_msg.slope_right
         b_2    = track_msg.intercept_right
-        assert m_1 != m_2, "2 lines are parallel, cannot happen"
+        # assert m_1 != m_2, "2 lines are parallel, cannot happen"
 
         if self.draw_lines:
             self.__draw_line(m_1, b_1, self.line_pub)
             self.__draw_line(m_2, b_2, self.line_pub)
 
         # find intersection of 2 line
-        x = (b_2 - b_1) / (m_1 - m_2)
-        y = m_1*x + b_1
+        # x = (b_2 - b_1) / (m_1 - m_2)
+        # y = m_1*x + b_1
+        # lookahead = np.array([x, y])
+
+        x = self.front_point
+        if m_1 is not None and m_2 is not None:
+            y = (b_1 + b_2) / 2.0
+        elif m_1 is not None:
+            y = b_1 - self.half_track_width
+        elif m_2 is not None:
+            y = self.half_track_width + b_2
+        else:
+            rospy.logerr("did not get any track lines")
+            return
+        
         lookahead = np.array([x, y])
 
         ## find distance between car and lookahead
