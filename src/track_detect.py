@@ -82,12 +82,12 @@ class TrackDetector():
 
     def __draw_xy_point(self, point, image, color):
         p_uv = self.homography_transformer.transform_xy_to_uv(point)
-        cv.circle(image, p_uv, 10, color, -1)
+        cv.circle(image, tuple(p_uv), 10, color, -1)
 
     def __draw_xy_line(self, line, image, color):
         p1_uv = self.homography_transformer.transform_xy_to_uv(line[0])
         p2_uv = self.homography_transformer.transform_xy_to_uv(line[1])
-        cv.line(image, p1_uv, p2_uv, color, 5, cv.LINE_AA)
+        cv.line(image, tuple(p1_uv), tuple(p2_uv), color, 5, cv.LINE_AA)
 
     @staticmethod
     def __track_update(line, p, best_line, best_dist):
