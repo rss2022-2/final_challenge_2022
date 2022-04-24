@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="final_challenge_2022" type="track_detect.py" name="track_detect" output="screen">
+    <rosparam command="load" file="$(find final_challenge_2022)/track_detect_params.yaml"/>
+  </node>
+  
+  <node pkg="final_challenge_2022" type="track_pursuit.py" name="track_pursuit" output="screen">
+    <rosparam command="load" file="$(find final_challenge_2022)/params.yaml"/>
+  </node>
+</launch>
