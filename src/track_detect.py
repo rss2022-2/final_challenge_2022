@@ -15,7 +15,8 @@ RIGHT_COLOR = (0, 221, 254)
 
 
 class TrackDetector():
-    
+    ELEMENT = cv.getStructuringElement(cv.MORPH_CROSS, (3, 3))
+
     def __init__(self):
         image_topic = rospy.get_param("~image_topic")
         track_topic = rospy.get_param("~track_topic")
@@ -27,6 +28,9 @@ class TrackDetector():
         self.upper_bound = np.array(rospy.get_param("~color_upper_bound"), np.uint8)
         self.pt_left = rospy.get_param("~pt_left")
         self.pt_right = rospy.get_param("~pt_right")
+        self.lp_factor = rospy.get_param("~lp_factor")
+
+        self.track_msg = TrackLane()
 
         # Subscribe to ZED camera RGB frames
         if self.send_debug:
@@ -44,15 +48,19 @@ class TrackDetector():
         
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
 
-        if self.send_debug:
-            image = cv.bitwise_and(image, image, mask=mask)
+        # if self.send_debug:
+        #     image = cv.bitwise_and(image, image, mask=mask)
 
         left_line, right_line = self.__get_track(lines, image)
 
         track_msg = TrackLane()
 
         if left_line is not None:
-            track_msg.slope_left, track_msg.intercept_left = TrackDetector.__get_slope_intercept(left_line)
+            slope_left, intercept_left = TrackDetector.__get_slope_intercept(left_line)
+            self.track_msg.slope_left = TrackDetector.__lp(self.track_msg.slope_left, slope_left, self.lp_factor)
+            self.track_msg.intercept_left = TrackDetector.__lp(self.track_msg.intercept_left, intercept_left, self.lp_factor)
+            track_msg.slope_left = self.track_msg.slope_left
+            track_msg.intercept_left = self.track_msg.intercept_left
             if self.send_debug:
                 #rospy.loginfo("Left line detected!")
                 self.__draw_xy_line(left_line, image, LEFT_COLOR)
@@ -61,7 +69,11 @@ class TrackDetector():
             track_msg.slope_left, track_msg.intercept_left = [float("NaN"), float("NaN")]
         
         if right_line is not None:
-            track_msg.slope_right, track_msg.intercept_right = TrackDetector.__get_slope_intercept(right_line)
+            slope_right, intercept_right = TrackDetector.__get_slope_intercept(right_line)
+            self.track_msg.slope_right = TrackDetector.__lp(self.track_msg.slope_right, slope_right, self.lp_factor)
+            self.track_msg.intercept_right = TrackDetector.__lp(self.track_msg.intercept_right, intercept_right, self.lp_factor)
+            track_msg.slope_right = self.track_msg.slope_right
+            track_msg.intercept_right = self.track_msg.intercept_right
             if self.send_debug:
                 #rospy.loginfo("Right line detected!")
                 self.__draw_xy_line(right_line, image, RIGHT_COLOR)
@@ -74,7 +86,10 @@ class TrackDetector():
             self.debug_pub.publish(debug_msg)
 
         self.track_pub.publish(track_msg)
-        
+    
+    @staticmethod
+    def __lp(value, new_value, factor):
+        return value * (1 - factor) + new_value * (factor)
     
     @staticmethod
     def __get_slope_intercept(line):
@@ -96,10 +111,8 @@ class TrackDetector():
     @staticmethod
     def __track_update(line, p, best_line, best_dist):
         p1_xy, p2_xy = line
-
-
         new_dist = TrackDetector.__min_distance(p1_xy, p2_xy, p)
-
+        # rospy.loginfo("dist: %f" % new_dist)
         if best_dist is None or (new_dist < best_dist and new_dist < 1.0):
             return line, new_dist
         return best_line, best_dist
@@ -112,6 +125,8 @@ class TrackDetector():
         best_line_right = None
 
         if lines is not None:
+            colors = [(0,0,255), (0,255,0), (255,0,0)]
+            j = 0
             for line in lines:
                 p1_u, p1_v, p2_u, p2_v = line[0]
                 p1_xy = self.homography_transformer.transform_uv_to_xy([p1_u, p1_v])
@@ -123,6 +138,7 @@ class TrackDetector():
                 if np.abs(slope) < 0.7:
                     left_y = self.pt_left[0]*slope + intercept
                     if left_y > self.pt_left[1]:
+                        # rospy.loginfo("slope: %f" % slope)
                         best_line_left, best_dist_left = TrackDetector.__track_update(line, 
                                                                                       self.pt_left, 
                                                                                       best_line_left, 
@@ -134,30 +150,36 @@ class TrackDetector():
                                                                                         best_line_right, 
                                                                                         best_dist_right)
                 if self.send_debug:
-                    cv.line(image, (p1_u, p1_v), (p2_u, p2_v), (0,0,255), 3, cv.LINE_AA)
-        
+                    cv.line(image, (p1_u, p1_v), (p2_u, p2_v), colors[j%3], 3, cv.LINE_AA)
+                    j += 1
+        # rospy.loginfo("best: %f" % best_dist_left)
+        # rospy.loginfo("-----------")
         return best_line_left, best_line_right
 
+    # Adapted from http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
     @staticmethod
     def __get_outline_image(image, lower_bound, upper_bound, code=None):
         edge_image = image.copy()
         if code is not None:
             edge_image = cv.cvtColor(edge_image, code)
         
-        edge_image = cv.inRange(edge_image, lower_bound, upper_bound)
-        edge_image = cv.dilate(
-            edge_image,
-            cv.getStructuringElement(cv.MORPH_RECT, (6, 6)),
-            iterations=1
-        )
-        edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
-        edge_image = cv.Canny(edge_image, 50, 150, L2gradient=True)
-        return edge_image
+        mask = cv.inRange(edge_image, lower_bound, upper_bound)
+        mask = cv.dilate(mask, TrackDetector.ELEMENT)
+
+        skel = np.zeros(mask.shape, dtype=np.uint8)
+        while(cv.countNonZero(mask) != 0):
+            eroded = cv.erode(mask, TrackDetector.ELEMENT)
+            temp = cv.dilate(eroded, TrackDetector.ELEMENT)
+            temp = cv.subtract(mask, temp)
+            skel = cv.bitwise_or(skel, temp)
+            mask = eroded
+
+        return skel
 
     @staticmethod
     def __get_hough_lines(image, lower_bound, upper_bound, code=None):
         dst = TrackDetector.__get_outline_image(image, lower_bound, upper_bound, code)
-        return cv.HoughLinesP(dst, 1, np.pi / 720.0, 100, None, 50, 10), dst
+        return cv.HoughLinesP(dst, 1, np.pi / 720, 100, None, 20, 10), dst
 
     #Adapted from https://www.geeksforgeeks.org/minimum-distance-from-a-point-to-the-line-segment-using-vectors/
     @staticmethod
