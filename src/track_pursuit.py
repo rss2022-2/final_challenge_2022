@@ -27,6 +27,9 @@ class TrackPursuit(object):
         self.draw_lines         = rospy.get_param("~draw_lines", True)
         self.front_point        = 3 # look at 3 meters ahead
         self.half_track_width   = 0.83 / 2.0
+        self.GAIN_P             = 2
+        self.WEIGHT_DISTANCE    = 0.3
+        self.WEIGHT_ANGLE       = 0.7
 
         # publish drive commands
         drive_msg = AckermannDriveStamped()
@@ -70,38 +73,52 @@ class TrackPursuit(object):
 
         x = self.front_point
         if m_1 is not None and m_2 is not None:
-            y = (b_1 + b_2) / 2.0
+            side = 1
+            # y = (b_1 + b_2) / 2.0
+            distance_error = abs(b_1) - self.half_track_width
+            angle_error = np.arctan(m_1) if m_1 != 0 else 0
         elif m_1 is not None:
-            y = b_1 - self.half_track_width
+            side = 1
+            # y = b_1 - self.half_track_width
+            distance_error = abs(b_1) - self.half_track_width
+            angle_error = np.arctan(m_1) if m_1 != 0 else 0
         elif m_2 is not None:
-            y = self.half_track_width + b_2
+            side = -1
+            # y = self.half_track_width + b_2
+            distance_error = abs(b_2) - self.half_track_width
+            angle_error = -np.arctan(m_2) if m_2 != 0 else 0
         else:
             rospy.logerr("did not get any track lines")
             return
         
-        lookahead = np.array([x, y])
+        total_error = angle_error*self.WEIGHT_ANGLE + distance_error*self.WEIGHT_DISTANCE
 
-        ## find distance between car and lookahead
-        lookahead_vec = lookahead - self.point_car
-        distance = np.linalg.norm(lookahead_vec)
+        pid = total_error * self.GAIN_P
+
+        # lookahead = np.array([x, y])
+
+        # ## find distance between car and lookahead
+        # lookahead_vec = lookahead - self.point_car
+        # distance = np.linalg.norm(lookahead_vec)
         
-        ## find alpha: angle of the car to lookahead point
-        lookahead_unit_vec = lookahead_vec / distance
-        dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
-        dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
-        assert -1 <= dot_product <= 1, dot_product
-        alpha = np.arccos(dot_product)
+        # ## find alpha: angle of the car to lookahead point
+        # lookahead_unit_vec = lookahead_vec / distance
+        # dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
+        # dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
+        # assert -1 <= dot_product <= 1, dot_product
+        # alpha = np.arccos(dot_product)
 
-        # steering angle
-        steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
-                        / (distance))
-        steer_ang = steer_ang if y >= 0 else -steer_ang
+        # # steering angle
+        # steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
+        #                 / (distance))
+        # steer_ang = steer_ang if y >= 0 else -steer_ang
 
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
         # optimization: run fast if steer_ang is small
-        self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
-        self.drive_msg.drive.steering_angle = steer_ang
+        # self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
+        self.drive_msg.drive.speed = self.speed
+        self.drive_msg.drive.steering_angle = pid if (-0.34 <= pid <= 0.34) else -0.34 if pid <= 0 else 0.34
         
     @staticmethod
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):
