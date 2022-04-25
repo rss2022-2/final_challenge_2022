@@ -54,16 +54,20 @@ class TrackDetector():
         if left_line is not None:
             track_msg.slope_left, track_msg.intercept_left = TrackDetector.__get_slope_intercept(left_line)
             if self.send_debug:
-                rospy.loginfo("Left line detected!")
+                #rospy.loginfo("Left line detected!")
                 self.__draw_xy_line(left_line, image, LEFT_COLOR)
                 self.__draw_xy_point(self.pt_left, image, LEFT_COLOR)
+        else:
+            track_msg.slope_left, track_msg.intercept_left = [float("NaN"), float("NaN")]
         
         if right_line is not None:
             track_msg.slope_right, track_msg.intercept_right = TrackDetector.__get_slope_intercept(right_line)
             if self.send_debug:
-                rospy.loginfo("Right line detected!")
+                #rospy.loginfo("Right line detected!")
                 self.__draw_xy_line(right_line, image, RIGHT_COLOR)
                 self.__draw_xy_point(self.pt_right, image, RIGHT_COLOR)
+        else:
+            track_msg.slope_right, track_msg.intercept_right = [float("NaN"), float("NaN")]
 
         if self.send_debug:
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
@@ -116,7 +120,7 @@ class TrackDetector():
                 slope = delta[1]/delta[0]
                 intercept = p1_xy[1] - p1_xy[0]*slope
                 line = [p1_xy, p2_xy]
-                if np.abs(slope) < 0.5:
+                if np.abs(slope) < 0.7:
                     left_y = self.pt_left[0]*slope + intercept
                     if left_y > self.pt_left[1]:
                         best_line_left, best_dist_left = TrackDetector.__track_update(line, 

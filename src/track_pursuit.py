@@ -25,12 +25,13 @@ class TrackPursuit(object):
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
-        self.front_point        = 3 # look at 3 meters ahead
+        self.front_point        = 1 # look at 3 meters ahead
         self.half_track_width   = 0.83 / 2.0
         self.GAIN_P             = 2
         self.WEIGHT_DISTANCE    = 0.3
         self.WEIGHT_ANGLE       = 0.7
 
+        self.left_cam_offset    = 0.1
         # publish drive commands
         drive_msg = AckermannDriveStamped()
         drive_msg.drive.acceleration = 0
@@ -72,17 +73,17 @@ class TrackPursuit(object):
         # lookahead = np.array([x, y])
 
         x = self.front_point
-        if m_1 is not None and m_2 is not None:
+        if not np.isnan(m_1) and not np.isnan(m_2):
             side = 1
             # y = (b_1 + b_2) / 2.0
             distance_error = abs(b_1) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
-        elif m_1 is not None:
+        elif not np.isnan(m_1):
             side = 1
             # y = b_1 - self.half_track_width
             distance_error = abs(b_1) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
-        elif m_2 is not None:
+        elif not np.isnan(m_2):
             side = -1
             # y = self.half_track_width + b_2
             distance_error = abs(b_2) - self.half_track_width
@@ -124,7 +125,7 @@ class TrackPursuit(object):
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):
         x = np.linspace(0, 5, num=20)
         y = slope*x + y_intercept
-        VisualizationTools.plot_line(x, y, publisher, frame="/laser")
+        VisualizationTools.plot_line(x, y, publisher, frame=frame)
 
     
 if __name__=="__main__":
