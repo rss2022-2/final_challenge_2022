@@ -28,8 +28,8 @@ class TrackPursuit(object):
         self.front_point        = 1 # look at 3 meters ahead
         self.half_track_width   = 0.83 / 2.0
         self.GAIN_P             = 2
-        self.WEIGHT_DISTANCE    = 0.3
-        self.WEIGHT_ANGLE       = 0.7
+        self.WEIGHT_DISTANCE    = 0.7
+        self.WEIGHT_ANGLE       = 0.3
 
         self.left_cam_offset    = 0.1
         # publish drive commands
@@ -78,16 +78,19 @@ class TrackPursuit(object):
             # y = (b_1 + b_2) / 2.0
             distance_error = abs(b_1) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
+            rospy.loginfo("See both")
         elif not np.isnan(m_1):
             side = 1
             # y = b_1 - self.half_track_width
             distance_error = abs(b_1) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
+            rospy.loginfo("See only left")
         elif not np.isnan(m_2):
             side = -1
             # y = self.half_track_width + b_2
-            distance_error = abs(b_2) - self.half_track_width
-            angle_error = -np.arctan(m_2) if m_2 != 0 else 0
+            distance_error = self.half_track_width - abs(b_2)
+            angle_error = np.arctan(m_2) if m_2 != 0 else 0
+            rospy.loginfo("See only right")
         else:
             rospy.logerr("did not get any track lines")
             return
