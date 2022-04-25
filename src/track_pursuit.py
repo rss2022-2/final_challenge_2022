@@ -25,9 +25,9 @@ class TrackPursuit(object):
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
-        self.front_point        = 3 # look at 3 meters ahead
+        self.front_point        = 1 # look at 3 meters ahead
         self.half_track_width   = 0.83 / 2.0
-
+        self.left_cam_offset    = 0.1
         # publish drive commands
         drive_msg = AckermannDriveStamped()
         drive_msg.drive.acceleration = 0
@@ -69,18 +69,21 @@ class TrackPursuit(object):
         # lookahead = np.array([x, y])
 
         x = self.front_point
-        if m_1 is not None and m_2 is not None:
-            y = (b_1 + b_2) / 2.0
-        elif m_1 is not None:
-            y = b_1 - self.half_track_width
-        elif m_2 is not None:
-            y = self.half_track_width + b_2
+        if not np.isnan(m_1) and not np.isnan(m_2):
+            rospy.loginfo("see both")
+            y = (b_1 + b_2) / 2.0 - self.left_cam_offset
+        elif not np.isnan(m_1):
+            rospy.loginfo("see only left")
+            y = b_1 - self.half_track_width - self.left_cam_offset
+        elif not np.isnan(m_2):
+            y = self.half_track_width + b_2 - self.left_cam_offset
+            rospy.loginfo("see only right")
         else:
             rospy.logerr("did not get any track lines")
             return
-        
-        lookahead = np.array([x, y])
 
+        lookahead = np.array([x, y])
+        rospy.loginfo(lookahead)
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
         distance = np.linalg.norm(lookahead_vec)
@@ -107,7 +110,7 @@ class TrackPursuit(object):
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):
         x = np.linspace(0, 5, num=20)
         y = slope*x + y_intercept
-        VisualizationTools.plot_line(x, y, publisher, frame="/laser")
+        VisualizationTools.plot_line(x, y, publisher, frame=frame)
 
     
 if __name__=="__main__":
