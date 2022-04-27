@@ -27,11 +27,11 @@ class TrackPursuit(object):
         self.draw_lines         = rospy.get_param("~draw_lines", True)
         self.front_point        = 1 # look at 3 meters ahead
         self.half_track_width   = 0.83 / 2.0
-        self.GAIN_P             = 2
+        self.GAIN_P             = 1
         self.WEIGHT_DISTANCE    = 0.7
         self.WEIGHT_ANGLE       = 0.3
 
-        self.left_cam_offset    = 0.1
+        self.left_cam_offset    = 0.14
         # publish drive commands
         drive_msg = AckermannDriveStamped()
         drive_msg.drive.acceleration = 0
@@ -76,21 +76,28 @@ class TrackPursuit(object):
         if not np.isnan(m_1) and not np.isnan(m_2):
             side = 1
             # y = (b_1 + b_2) / 2.0
-            distance_error = abs(b_1) - self.half_track_width
+            distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
             rospy.loginfo("See both")
+            rospy.loginfo([m_1, b_1])
+            rospy.loginfo("distance error")
+            rospy.loginfo(distance_error)
+            rospy.loginfo("angel error")
+            rospy.loginfo(angle_error)
         elif not np.isnan(m_1):
             side = 1
             # y = b_1 - self.half_track_width
-            distance_error = abs(b_1) - self.half_track_width
+            distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
             angle_error = np.arctan(m_1) if m_1 != 0 else 0
             rospy.loginfo("See only left")
+            rospy.loginfo([m_1, b_1])
         elif not np.isnan(m_2):
             side = -1
             # y = self.half_track_width + b_2
-            distance_error = self.half_track_width - abs(b_2)
+            distance_error = self.half_track_width - abs(b_2 + self.left_cam_offset)
             angle_error = np.arctan(m_2) if m_2 != 0 else 0
             rospy.loginfo("See only right")
+            rospy.loginfo([m_2, b_2])
         else:
             rospy.logerr("did not get any track lines")
             return
