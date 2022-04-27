@@ -72,64 +72,79 @@ class TrackPursuit(object):
         # y = m_1*x + b_1
         # lookahead = np.array([x, y])
 
+        # x = self.front_point
+        # if not np.isnan(m_1) and not np.isnan(m_2):
+        #     side = 1
+        #     # y = (b_1 + b_2) / 2.0
+        #     distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
+        #     angle_error = np.arctan(m_1) if m_1 != 0 else 0
+        #     rospy.loginfo("See both")
+        #     rospy.loginfo([m_1, b_1])
+        #     rospy.loginfo("distance error")
+        #     rospy.loginfo(distance_error)
+        #     rospy.loginfo("angel error")
+        #     rospy.loginfo(angle_error)
+        # elif not np.isnan(m_1):
+        #     side = 1
+        #     # y = b_1 - self.half_track_width
+        #     distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
+        #     angle_error = np.arctan(m_1) if m_1 != 0 else 0
+        #     rospy.loginfo("See only left")
+        #     rospy.loginfo([m_1, b_1])
+        # elif not np.isnan(m_2):
+        #     side = -1
+        #     # y = self.half_track_width + b_2
+        #     distance_error = self.half_track_width - abs(b_2 + self.left_cam_offset)
+        #     angle_error = np.arctan(m_2) if m_2 != 0 else 0
+        #     rospy.loginfo("See only right")
+        #     rospy.loginfo([m_2, b_2])
+        # else:
+        #     rospy.logerr("did not get any track lines")
+        #     return
+        
+        # total_error = angle_error*self.WEIGHT_ANGLE + distance_error*self.WEIGHT_DISTANCE
+
+        # pid = total_error * self.GAIN_P
+
+
         x = self.front_point
         if not np.isnan(m_1) and not np.isnan(m_2):
-            side = 1
-            # y = (b_1 + b_2) / 2.0
-            distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
-            angle_error = np.arctan(m_1) if m_1 != 0 else 0
-            rospy.loginfo("See both")
-            rospy.loginfo([m_1, b_1])
-            rospy.loginfo("distance error")
-            rospy.loginfo(distance_error)
-            rospy.loginfo("angel error")
-            rospy.loginfo(angle_error)
+            y = (b_1 + b_2) / 2.0
         elif not np.isnan(m_1):
-            side = 1
-            # y = b_1 - self.half_track_width
-            distance_error = abs(b_1 - self.left_cam_offset) - self.half_track_width
-            angle_error = np.arctan(m_1) if m_1 != 0 else 0
-            rospy.loginfo("See only left")
-            rospy.loginfo([m_1, b_1])
+            y = b_1 - self.half_track_width
         elif not np.isnan(m_2):
-            side = -1
-            # y = self.half_track_width + b_2
-            distance_error = self.half_track_width - abs(b_2 + self.left_cam_offset)
-            angle_error = np.arctan(m_2) if m_2 != 0 else 0
-            rospy.loginfo("See only right")
-            rospy.loginfo([m_2, b_2])
+            y = self.half_track_width + b_2
         else:
             rospy.logerr("did not get any track lines")
             return
         
-        total_error = angle_error*self.WEIGHT_ANGLE + distance_error*self.WEIGHT_DISTANCE
+        lookahead = np.array([x, y])
 
-        pid = total_error * self.GAIN_P
 
-        # lookahead = np.array([x, y])
-
-        # ## find distance between car and lookahead
-        # lookahead_vec = lookahead - self.point_car
-        # distance = np.linalg.norm(lookahead_vec)
+        ## find distance between car and lookahead
+        lookahead_vec = lookahead - self.point_car
+        distance = np.linalg.norm(lookahead_vec)
         
-        # ## find alpha: angle of the car to lookahead point
-        # lookahead_unit_vec = lookahead_vec / distance
-        # dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
-        # dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
-        # assert -1 <= dot_product <= 1, dot_product
-        # alpha = np.arccos(dot_product)
+        ## find alpha: angle of the car to lookahead point
+        lookahead_unit_vec = lookahead_vec / distance
+        dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
+        dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
+        assert -1 <= dot_product <= 1, dot_product
+        alpha = np.arccos(dot_product)
 
-        # # steering angle
-        # steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
-        #                 / (distance))
-        # steer_ang = steer_ang if y >= 0 else -steer_ang
+        # steering angle
+        steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
+                        / (distance))
+        steer_ang = steer_ang if y >= 0 else -steer_ang
 
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
         # optimization: run fast if steer_ang is small
-        # self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
-        self.drive_msg.drive.speed = self.speed
-        self.drive_msg.drive.steering_angle = pid if (-0.34 <= pid <= 0.34) else -0.34 if pid <= 0 else 0.34
+        self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
+        self.drive_msg.drive.steering_angle = steer_ang
+
+        # self.drive_msg.drive.speed = self.speed
+        # self.drive_msg.drive.steering_angle = pid if (-0.34 <= pid <= 0.34) else -0.34 if pid <= 0 else 0.34
         
     @staticmethod
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):

@@ -16,10 +16,10 @@ class FakeLines():
 
     def send_lines(self, event):
         lines_msg = TrackLane()
-        lines_msg.slope_left = -0.5
-        lines_msg.intercept_left = 3
-        lines_msg.slope_right = 0.5
-        lines_msg.intercept_right = -1
+        lines_msg.slope_left = 0.5
+        lines_msg.intercept_left = 0.83 / 2.0 
+        lines_msg.slope_right = -0.5
+        lines_msg.intercept_right = lines_msg.intercept_left - 0.83
         self.lines_pub.publish(lines_msg)
 
 if __name__=="__main__":
