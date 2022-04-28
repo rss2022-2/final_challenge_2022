@@ -54,8 +54,8 @@ class TrackDetector():
 
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
 
-        # if self.send_debug:
-        #     image = cv.bitwise_and(image, image, mask=mask)
+        if self.send_debug:
+            image = cv.bitwise_and(image, image, mask=mask)
 
         left_line, right_line = self.__get_track(lines, image)
 
@@ -71,7 +71,7 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, LEFT_COLOR)
                 TrackDetector.__draw_line(left_line, image, LEFT_COLOR)
-            intersect_u -= self.max_lookahead_uv[1]/2
+            intersect_u -= self.max_lookahead_uv[1]/3
         if right_line is not None:
 #            rospy.loginfo("see right")
             right_lookahead_intersect = self.__get_intersect(right_line, max_lookahead_line)
@@ -79,7 +79,7 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, RIGHT_COLOR)
                 TrackDetector.__draw_line(right_line, image, RIGHT_COLOR)
-            intersect_u += self.max_lookahead_uv[1]/2
+            intersect_u += self.max_lookahead_uv[1]/3
         if left_line and right_line is not None:
             left_right_intersect = self.__get_intersect(right_line, left_line)
             if left_right_intersect[1] < left_lookahead_intersect[1]:

@@ -1,6 +1,6 @@
-speed: .5
+speed: 1
 
-fast_speed: 0.5
+fast_speed: 1
 
 # lookahead: 1.0
 
