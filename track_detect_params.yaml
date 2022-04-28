@@ -1,4 +1,4 @@
-image_topic: "/zed_node/rgb/image_rect_color"
+image_topic: "/zed/zed_node/rgb/image_rect_color"
 track_topic: "/track_topic"
 image_debug_topic: "/track_detect_image"
 
