@@ -168,7 +168,7 @@ class TrackDetector():
                                                                                         best_line_right, 
                                                                                         best_dist_right)
                 if self.send_debug:
-                    cv.line(image, p1, p2, colors[j%3], 3, cv.LINE_AA)
+                    cv.line(image, tuple(p1), tuple(p2), colors[j%3], 3, cv.LINE_AA)
                     j += 1
         # rospy.loginfo("best: %f" % best_dist_left)
         # rospy.loginfo("-----------")
