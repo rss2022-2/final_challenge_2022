@@ -192,60 +192,16 @@ class TrackDetector():
         dst = TrackDetector.__get_outline_image(image, lower_bound, upper_bound, code)
         return cv.HoughLinesP(dst, 1, np.pi / 180, 50, None, 50, 5), dst
 
-    #Adapted from https://www.geeksforgeeks.org/minimum-distance-from-a-point-to-the-line-segment-using-vectors/
     @staticmethod
-    def __min_distance(A, B, E):
-        # vector AB
-        AB = [None, None]
-        AB[0] = B[0] - A[0]
-        AB[1] = B[1] - A[1]
-    
-        # vector BP
-        BE = [None, None]
-        BE[0] = E[0] - B[0]
-        BE[1] = E[1] - B[1]
-    
-        # vector AP
-        AE = [None, None]
-        AE[0] = E[0] - A[0]
-        AE[1] = E[1] - A[1]
-
-        # Variables to store dot product
-    
-        # Calculating the dot product
-        AB_BE = AB[0] * BE[0] + AB[1] * BE[1]
-        AB_AE = AB[0] * AE[0] + AB[1] * AE[1]
-    
-        # Minimum distance from
-        # point E to the line segment
-        reqAns = 0
-    
-        # Case 1
-        if (AB_BE > 0) :
-    
-            # Finding the magnitude
-            y = E[1] - B[1]
-            x = E[0] - B[0]
-            reqAns = np.sqrt(x * x + y * y)
-    
-        # Case 2
-        elif (AB_AE < 0) :
-            y = E[1] - A[1]
-            x = E[0] - A[0]
-            reqAns = np.sqrt(x * x + y * y)
-    
-        # Case 3
-        else:
-    
-            # Finding the perpendicular distance
-            x1 = AB[0]
-            y1 = AB[1]
-            x2 = AE[0]
-            y2 = AE[1]
-            mod = np.sqrt(x1 * x1 + y1 * y1)
-            reqAns = abs(x1 * y2 - y1 * x2) / mod
-        
-        return reqAns
+    def __min_distance(seg_1, seg_2, point):
+        seg_1 = np.array(seg_1)
+        seg_2 = np.array(seg_2)
+        point = np.array(point)
+        l2 = np.linalg.norm(seg_1-seg_2)**2
+        if (l2 == 0.0): return np.linalg.norm(l2 - seg_1)
+        t = max(0, min(1, np.dot(point - seg_1, seg_2 - seg_1) / l2))
+        projection = seg_1 + t*(seg_2 - seg_1)
+        return np.linalg.norm(point - projection)
 
 if __name__ == '__main__':
     try:
