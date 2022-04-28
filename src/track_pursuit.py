@@ -18,20 +18,20 @@ class TrackPursuit(object):
     """
     def __init__(self):
         self.speed              = rospy.get_param("~speed", 1.0)
-        self.fast_speed         = rospy.get_param("~fast_speed", 1.0)
+        self.fast_speed         = rospy.get_param("~fast_speed", 4.0)
         self.wheelbase_length   = rospy.get_param("~wheelbase_length", 0.3)
         self.small_angle        = rospy.get_param("~small_steering_angle", 0.01)
         self.drive_topic        = rospy.get_param("~drive_topic", "/drive")
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
-        self.front_point        = 1 # look at 3 meters ahead
+        self.front_point        = 2 # look at 2 meters ahead
         self.half_track_width   = 0.83 / 2.0
         self.GAIN_P             = 1
         self.WEIGHT_DISTANCE    = 0.7
         self.WEIGHT_ANGLE       = 0.3
 
-        self.left_cam_offset    = 0.14
+        self.left_cam_offset    = 0.12
         # publish drive commands
         drive_msg = AckermannDriveStamped()
         drive_msg.drive.acceleration = 0
@@ -109,15 +109,27 @@ class TrackPursuit(object):
 
         x = self.front_point
         if not np.isnan(m_1) and not np.isnan(m_2):
-            y = (b_1 + b_2) / 2.0
+            slope = (m_1 + m_2) / 2.0
+            intercept = (b_1 + b_2) / 2.0
+            y = slope * x + intercept 
+            rospy.loginfo("see both")
+            rospy.loginfo(slope)
+            rospy.loginfo([x,y])
         elif not np.isnan(m_1):
+            slope = m_1
             y = b_1 - self.half_track_width
+            rospy.loginfo("see left")
+            rospy.loginfo([x,y])
         elif not np.isnan(m_2):
+            slope = m_2
             y = self.half_track_width + b_2
+            rospy.loginfo([x,y])
         else:
             rospy.logerr("did not get any track lines")
             return
-        
+        x = np.abs(0.4)/slope
+        if x > 4 : x = 4
+        if x < 3 : x = 3
         lookahead = np.array([x, y])
 
 
