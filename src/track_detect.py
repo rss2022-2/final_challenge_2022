@@ -96,6 +96,8 @@ class TrackDetector():
             TrackDetector.__draw_point(self.pt_left_uv, image, LEFT_COLOR)
             TrackDetector.__draw_point(self.pt_right_uv, image, RIGHT_COLOR)
             TrackDetector.__draw_line(max_lookahead_line, image, (0,0,255))
+            center = (self.pt_left_uv[0] + self.pt_right_uv[0]) / 2
+            TrackDetector.__draw_line([(center, 0),(center, height)], image, (0,255,255))
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(debug_msg)
 
@@ -158,7 +160,7 @@ class TrackDetector():
                 slope = delta[1]/delta[0]
                 intercept = p1[1] - p1[0]*slope
                 line = [p1, p2]
-                rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
+                # rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
                 if np.abs(slope) > 0:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
                     if left_x > self.pt_left_uv[0]:
