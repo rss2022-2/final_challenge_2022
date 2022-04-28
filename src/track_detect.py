@@ -50,6 +50,7 @@ class TrackDetector():
         height, width, channels = image.shape
         cv.rectangle(image, (0,height), (width, height-150), (0,0,0), -1)
         max_lookahead_line = [(0, self.max_lookahead_uv[1]),(width, self.max_lookahead_uv[1])]
+        # max_lookahead_line = [(0, height),(width, height)]
 
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
 
@@ -70,6 +71,7 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, LEFT_COLOR)
                 TrackDetector.__draw_line(left_line, image, LEFT_COLOR)
+            intersect_u -= self.max_lookahead_uv[1]/2
         if right_line is not None:
 #            rospy.loginfo("see right")
             right_lookahead_intersect = self.__get_intersect(right_line, max_lookahead_line)
@@ -77,6 +79,7 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, RIGHT_COLOR)
                 TrackDetector.__draw_line(right_line, image, RIGHT_COLOR)
+            intersect_u += self.max_lookahead_uv[1]/2
         if left_line and right_line is not None:
             left_right_intersect = self.__get_intersect(right_line, left_line)
             if left_right_intersect[1] < left_lookahead_intersect[1]:
@@ -101,6 +104,7 @@ class TrackDetector():
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(debug_msg)
 
+        # rospy.loginfo(self.lookahead_msg)
         self.track_pub.publish(self.lookahead_msg)
     
     @staticmethod
@@ -191,7 +195,7 @@ class TrackDetector():
             edge_image = cv.cvtColor(edge_image, code)
         
         mask = cv.inRange(edge_image, lower_bound, upper_bound)
-        mask = cv.dilate(mask, TrackDetector.ELEMENT)
+        mask = cv.dilate(mask, TrackDetector.ELEMENT, iterations=1)
 
         skel = np.zeros(mask.shape, dtype=np.uint8)
         while(cv.countNonZero(mask) != 0):
