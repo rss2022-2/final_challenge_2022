@@ -3,20 +3,24 @@ track_topic: "/track_topic"
 image_debug_topic: "/track_detect_image"
 
 pts_image_plane: 
-  - [366, 339]
-  - [354, 283]
-  - [523, 297]
-  - [531, 339]
-pts_ground_plane:
-  - [0.24, 0.04]
-  - [0.36, 0.04]
-  - [0.32, -0.12]
-  - [0.24, -0.08]
+  - [-386, 35]
+  - [1393, 35]
+  - [163, 132]
+  - [558, 132]
+# In centimeter
+ground_roi_size: [100, 140]
+# pts_ground_plane:
+#   - [0, 0]
+#   - [0, 140]
+#   - [100, 0]
+#   - [100, 140]
+
+pt_left: [0, 80]
+pt_right: [0, 60]
+
+scale: 0.01
 
 color_lower_bound: [0, 200, 0]
 color_upper_bound: [255, 255, 255]
 
-pt_left: [0.2, 0.05]
-pt_right: [0.2,-0.05]
-
-lp_factor: 0.75
+lp_factor: 0.5
