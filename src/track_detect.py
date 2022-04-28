@@ -64,12 +64,14 @@ class TrackDetector():
         intersect_u = None
         intersect_v = None
         if left_line is not None:
+            rospy.loginfo("see left")
             left_lookahead_intersect = self.__get_intersect(left_line, max_lookahead_line)
             intersect_u, intersect_v = left_lookahead_intersect
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, LEFT_COLOR)
                 TrackDetector.__draw_line(left_line, image, LEFT_COLOR)
         if right_line is not None:
+            rospy.loginfo("see right")
             right_lookahead_intersect = self.__get_intersect(right_line, max_lookahead_line)
             intersect_u, intersect_v = right_lookahead_intersect
             if self.send_debug:
@@ -153,16 +155,19 @@ class TrackDetector():
                 slope = delta[1]/delta[0]
                 intercept = p1[1] - p1[0]*slope
                 line = [p1, p2]
-                if np.abs(slope) > 0.01:
+                if np.abs(slope) > 0:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
                     if left_x > self.pt_left_uv[0]:
-                        # rospy.loginfo("slope: %f" % slope)
+                        rospy.loginfo("do left")
                         best_line_left, best_dist_left = TrackDetector.__track_update(line, 
                                                                                       self.pt_left_uv, 
                                                                                       best_line_left, 
                                                                                       best_dist_left)
                     right_x = (self.pt_right_uv[1]-intercept)/slope
+                    rospy.loginfo(right_x)
+                    rospy.loginfo(self.pt_right_uv)
                     if right_x < self.pt_right_uv[0]:
+                        rospy.loginfo("do right")
                         best_line_right, best_dist_right = TrackDetector.__track_update(line, 
                                                                                         self.pt_right_uv, 
                                                                                         best_line_right, 
