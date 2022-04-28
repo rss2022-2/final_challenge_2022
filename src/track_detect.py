@@ -64,14 +64,14 @@ class TrackDetector():
         intersect_u = None
         intersect_v = None
         if left_line is not None:
-            rospy.loginfo("see left")
+#            rospy.loginfo("see left")
             left_lookahead_intersect = self.__get_intersect(left_line, max_lookahead_line)
             intersect_u, intersect_v = left_lookahead_intersect
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, LEFT_COLOR)
                 TrackDetector.__draw_line(left_line, image, LEFT_COLOR)
         if right_line is not None:
-            rospy.loginfo("see right")
+#            rospy.loginfo("see right")
             right_lookahead_intersect = self.__get_intersect(right_line, max_lookahead_line)
             intersect_u, intersect_v = right_lookahead_intersect
             if self.send_debug:
@@ -107,7 +107,7 @@ class TrackDetector():
     
     @staticmethod
     def __get_slope_intercept(line):
-        delta = (np.array(line[1]) - np.array(line[0]))
+        delta = (np.array(line[1], dtype=float) - np.array(line[0], dtype=float))
         slope = delta[1]/delta[0]
         intercept = line[0][1] - line[0][0]*slope
         return slope, intercept
@@ -122,7 +122,10 @@ class TrackDetector():
 
     @staticmethod
     def __draw_point(point, image, color):
-        point = np.array(point, dtype=int)
+        try:
+            point = np.array(point, dtype=int)
+        except:
+            rospy.loginfo(point)
         cv.circle(image, tuple(point), 4, color, -1)
     
     @staticmethod
@@ -151,23 +154,22 @@ class TrackDetector():
             j = 0
             for line in lines:
                 p1, p2 = np.reshape(line[0], (2,2))
-                delta = (np.array(p2) - np.array(p1))
+                delta = (np.array(p2, dtype = float) - np.array(p1, dtype = float))
                 slope = delta[1]/delta[0]
                 intercept = p1[1] - p1[0]*slope
                 line = [p1, p2]
+                rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
                 if np.abs(slope) > 0:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
                     if left_x > self.pt_left_uv[0]:
-                        rospy.loginfo("do left")
+#                        rospy.loginfo("do left")
                         best_line_left, best_dist_left = TrackDetector.__track_update(line, 
                                                                                       self.pt_left_uv, 
                                                                                       best_line_left, 
                                                                                       best_dist_left)
                     right_x = (self.pt_right_uv[1]-intercept)/slope
-                    rospy.loginfo(right_x)
-                    rospy.loginfo(self.pt_right_uv)
                     if right_x < self.pt_right_uv[0]:
-                        rospy.loginfo("do right")
+#                        rospy.loginfo("do right")
                         best_line_right, best_dist_right = TrackDetector.__track_update(line, 
                                                                                         self.pt_right_uv, 
                                                                                         best_line_right, 
