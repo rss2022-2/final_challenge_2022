@@ -71,7 +71,9 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, LEFT_COLOR)
                 TrackDetector.__draw_line(left_line, image, LEFT_COLOR)
-            intersect_u -= self.max_lookahead_uv[1]/3
+            intersect_x, intersect_y = self.homography_transformer.transform_uv_to_xy([intersect_u, intersect_v])
+            intersect_y += 0.4
+            intersect_u, intersect_v = self.homography_transformer.transform_xy_to_uv([intersect_x, intersect_y])
         if right_line is not None:
 #            rospy.loginfo("see right")
             right_lookahead_intersect = self.__get_intersect(right_line, max_lookahead_line)
@@ -79,7 +81,9 @@ class TrackDetector():
             if self.send_debug:
                 TrackDetector.__draw_point((intersect_u, intersect_v), image, RIGHT_COLOR)
                 TrackDetector.__draw_line(right_line, image, RIGHT_COLOR)
-            intersect_u += self.max_lookahead_uv[1]/3
+            intersect_x, intersect_y = self.homography_transformer.transform_uv_to_xy([intersect_u, intersect_v])
+            intersect_y -= 0.4
+            intersect_u, intersect_v = self.homography_transformer.transform_xy_to_uv([intersect_x, intersect_y])
         if left_line and right_line is not None:
             left_right_intersect = self.__get_intersect(right_line, left_line)
             if left_right_intersect[1] < left_lookahead_intersect[1]:
