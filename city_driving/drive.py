@@ -7,7 +7,7 @@ from std_msgs.msg import Float32
 
 class Drive:
     def __init__(self):
-        DRIVE_TOPIC = rospy.get_param("/parking_controller/drive_topic") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/parking_error", ParkingError, queue_size=10)
         self.stop_sub = rospy.Subscriber("/stop_sign_distance", Float32, self.stop_callback)
