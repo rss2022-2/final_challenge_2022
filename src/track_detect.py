@@ -190,7 +190,7 @@ class TrackDetector():
     @staticmethod
     def __get_hough_lines(image, lower_bound, upper_bound, code=None):
         dst = TrackDetector.__get_outline_image(image, lower_bound, upper_bound, code)
-        return cv.HoughLinesP(dst, 1, np.pi / 180, 50, None, 50, 5), dst
+        return cv.HoughLinesP(dst, 1, np.pi / 180, 50, None, 20, 10), dst
 
     @staticmethod
     def __min_distance(seg_1, seg_2, point):
