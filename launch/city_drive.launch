@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="final_challenge_2022" name="city_drive" type="city_driving/drive.py" output="screen">
+  <node pkg="final_challenge_2022" name="drive" type="drive.py" output="screen">
   	<param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
   </node>
 
