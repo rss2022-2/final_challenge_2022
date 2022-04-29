@@ -1,0 +1,22 @@
+image_topic: "/zed/zed_node/left/image_rect_color"
+track_topic: "/track_topic"
+image_debug_topic: "/track_detect_image"
+
+pts_image_plane: 
+  - [525, 40]
+  - [243, 40]
+  - [347, 68]
+  - [421, 82]
+pts_ground_plane:
+  - [0.24, 0.08]
+  - [0.24, -0.12]
+  - [0.32, -0.04]
+  - [0.36, 0.04]
+
+color_lower_bound: [0, 200, 0]
+color_upper_bound: [255, 255, 255]
+
+pt_left: [0.3, 0.05]
+pt_right: [0.3,-0.05]
+
+lp_factor: 0.5

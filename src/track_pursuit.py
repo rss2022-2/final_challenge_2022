@@ -48,7 +48,7 @@ class TrackPursuit(object):
         self.point_car          = np.array([0, 0])
         self.car_unit_vec       = np.array([1, 0])
 
-        rospy.Timer(rospy.Duration(1.0/20.0), self.send_cmd)
+        #rospy.Timer(rospy.Duration(1.0/20.0), self.send_cmd)
 
     def send_cmd(self, event):
         self.drive_msg.header.stamp = rospy.Time.now()
@@ -114,6 +114,7 @@ class TrackPursuit(object):
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
         distance = np.linalg.norm(lookahead_vec)
+        rospy.loginfo(track_msg)
 
         ## find alpha: angle of the car to lookahead point
         lookahead_unit_vec = lookahead_vec / distance
@@ -126,6 +127,7 @@ class TrackPursuit(object):
         steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
                         / (distance))
         steer_ang = steer_ang if y >= 0 else -steer_ang
+        if abs(steer_ang) > np.pi/6.0: steer_ang = np.sign(steer_ang) * np.pi/6.0
 
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
@@ -133,6 +135,7 @@ class TrackPursuit(object):
         # self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
         self.drive_msg.drive.speed = self.speed
         self.drive_msg.drive.steering_angle = steer_ang
+        self.send_cmd(None)
         
     @staticmethod
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):

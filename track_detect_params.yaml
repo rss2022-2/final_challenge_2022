@@ -13,12 +13,12 @@ pts_ground_plane:
   - [0.37, -0.08]
   - [0.37, 0.08]
 
-color_lower_bound: [0, 200, 0]
+color_lower_bound: [0, 150, 0]
 color_upper_bound: [255, 255, 255]
 
 pt_left: [0.2, 0.05]
 pt_right: [0.2,-0.05]
 
-lp_factor: 0.5
+lp_factor: 0.25
 
 max_lookahead: 1
