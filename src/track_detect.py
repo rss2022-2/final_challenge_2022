@@ -10,8 +10,8 @@ from sensor_msgs.msg import Image
 from final_challenge_2022.msg import Lookahead
 from homography_transformer import HomographyTransformer
 
-LEFT_COLOR = (184, 87, 0)
-RIGHT_COLOR = (0, 221, 254)
+LEFT_COLOR = (184, 87, 0) # Blue
+RIGHT_COLOR = (0, 221, 254) # Yellow
 
 
 class TrackDetector():
@@ -28,11 +28,11 @@ class TrackDetector():
         self.upper_bound = np.array(rospy.get_param("~color_upper_bound"), np.uint8)
         self.pt_left = rospy.get_param("~pt_left")
         self.pt_right = rospy.get_param("~pt_right")
-        max_lookahead = rospy.get_param("~max_lookahead")
+        self.max_lookahead = rospy.get_param("~max_lookahead")
         self.homography_transformer = HomographyTransformer(pts_image_plane, pts_ground_plane)
         self.pt_left_uv = self.homography_transformer.transform_xy_to_uv(self.pt_left)
         self.pt_right_uv = self.homography_transformer.transform_xy_to_uv(self.pt_right)
-        self.max_lookahead_uv = self.homography_transformer.transform_xy_to_uv((max_lookahead, 0))
+        self.max_lookahead_uv = self.homography_transformer.transform_xy_to_uv((self.max_lookahead, 0))
         self.lp_factor = rospy.get_param("~lp_factor")
 
         self.lookahead_msg = Lookahead()
@@ -48,14 +48,14 @@ class TrackDetector():
     def image_callback(self, image_msg):
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         height, width, channels = image.shape
-        cv.rectangle(image, (0,height), (width, height-150), (0,0,0), -1)
+        cv.rectangle(image, (0,0), (width, 150), (0,0,0), -1)
         max_lookahead_line = [(0, self.max_lookahead_uv[1]),(width, self.max_lookahead_uv[1])]
         # max_lookahead_line = [(0, height),(width, height)]
 
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
 
-        if self.send_debug:
-            image = cv.bitwise_and(image, image, mask=mask)
+        # if self.send_debug:
+        #     image = cv.bitwise_and(image, image, mask=mask)
 
         left_line, right_line = self.__get_track(lines, image)
 
@@ -86,7 +86,7 @@ class TrackDetector():
             intersect_u, intersect_v = self.homography_transformer.transform_xy_to_uv([intersect_x, intersect_y])
         if left_line and right_line is not None:
             left_right_intersect = self.__get_intersect(right_line, left_line)
-            if left_right_intersect[1] < left_lookahead_intersect[1]:
+            if left_right_intersect[1] > left_lookahead_intersect[1]:
                 intersect_u, intersect_v = left_right_intersect
             else:
                 intersect_u = (left_lookahead_intersect[0] + right_lookahead_intersect[0])/2
@@ -104,7 +104,9 @@ class TrackDetector():
             TrackDetector.__draw_point(self.pt_right_uv, image, RIGHT_COLOR)
             TrackDetector.__draw_line(max_lookahead_line, image, (0,0,255))
             center = (self.pt_left_uv[0] + self.pt_right_uv[0]) / 2
-            TrackDetector.__draw_line([(center, 0),(center, height)], image, (0,255,255))
+            center_x, center_y = self.homography_transformer.transform_uv_to_xy((center, self.pt_left_uv[1]))
+            center_u, center_v = self.homography_transformer.transform_xy_to_uv((self.max_lookahead, center_y))
+            TrackDetector.__draw_line([[center, self.pt_left_uv[1]],[center_u, center_v]], image, (0,255,255))
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(debug_msg)
 
@@ -172,14 +174,14 @@ class TrackDetector():
                 # rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
                 if np.abs(slope) > 0.05:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
-                    if left_x > self.pt_left_uv[0]:
+                    if left_x < self.pt_left_uv[0]:
 #                        rospy.loginfo("do left")
                         best_line_left, best_dist_left = TrackDetector.__track_update(line, 
                                                                                       self.pt_left_uv, 
                                                                                       best_line_left, 
                                                                                       best_dist_left)
                     right_x = (self.pt_right_uv[1]-intercept)/slope
-                    if right_x < self.pt_right_uv[0]:
+                    if right_x > self.pt_right_uv[0]:
 #                        rospy.loginfo("do right")
                         best_line_right, best_dist_right = TrackDetector.__track_update(line, 
                                                                                         self.pt_right_uv, 

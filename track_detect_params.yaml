@@ -3,22 +3,22 @@ track_topic: "/track_topic"
 image_debug_topic: "/track_detect_image"
 
 pts_image_plane: 
-  - [216, 52]
-  - [449, 52]
-  - [254, 88]
-  - [417, 88]
+  - [323, 358]
+  - [323, 312]
+  - [441, 358]
+  - [410, 312]
 pts_ground_plane:
-  - [0.27, -0.08]
-  - [0.27, 0.08]
-  - [0.37, -0.08]
-  - [0.37, 0.08]
+  - [0.66, 0.06]
+  - [0.80, 0.06]
+  - [0.66, -0.08]
+  - [0.80, -0.08]
 
-color_lower_bound: [0, 150, 0]
+color_lower_bound: [0, 200, 0]
 color_upper_bound: [255, 255, 255]
 
-pt_left: [0.2, 0.05]
-pt_right: [0.2,-0.05]
+pt_left: [0.64, 0.1]
+pt_right: [0.64,-0.1]
 
-lp_factor: 0.25
+lp_factor: 1
 
-max_lookahead: 1
+max_lookahead: 2.5
