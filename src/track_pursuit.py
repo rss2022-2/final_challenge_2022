@@ -106,7 +106,7 @@ class TrackPursuit(object):
 
         # pid = total_error * self.GAIN_P
 
-
+        rospy.loginfo(track_msg)
         x = self.front_point
         if not np.isnan(m_1) and not np.isnan(m_2):
             if abs(b_1) > abs(b_2):
@@ -115,7 +115,7 @@ class TrackPursuit(object):
             else:
                 slope = m_1
                 intercept = b_1 - self.half_track_width
-            y = slope*x - intercept
+            y = slope*x + intercept
 
         elif not np.isnan(m_1):
             # slope = m_1
@@ -134,7 +134,7 @@ class TrackPursuit(object):
         # if x > 4 : x = 4
         # if x < 3 : x = 3
         lookahead = np.array([x, y])
-
+        rospy.loginfo([x,y])
 
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
