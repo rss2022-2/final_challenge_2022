@@ -25,7 +25,7 @@ class TrackPursuit(object):
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
-        self.front_point        = 2 # look at 2 meters ahead
+        self.front_point        = 2.5 # look at 2 meters ahead
         self.half_track_width   = 0.83 / 2.0
         self.GAIN_P             = 1
         self.WEIGHT_DISTANCE    = 0.7
@@ -116,20 +116,21 @@ class TrackPursuit(object):
             rospy.loginfo(slope)
             rospy.loginfo([x,y])
         elif not np.isnan(m_1):
-            slope = m_1
-            y = b_1 - self.half_track_width
+            # slope = m_1
+            # y = b_1 - self.half_track_width
             rospy.loginfo("see left")
-            rospy.loginfo([x,y])
+            return
         elif not np.isnan(m_2):
-            slope = m_2
-            y = self.half_track_width + b_2
-            rospy.loginfo([x,y])
+            # slope = m_2
+            # y = self.half_track_width + b_2
+            rospy.loginfo("see right")
+            return
         else:
             rospy.logerr("did not get any track lines")
             return
-        x = np.abs(0.4)/slope
-        if x > 4 : x = 4
-        if x < 3 : x = 3
+        # x = np.abs(0.4)/slope
+        # if x > 4 : x = 4
+        # if x < 3 : x = 3
         lookahead = np.array([x, y])
 
 
