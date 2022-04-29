@@ -108,6 +108,8 @@ class TrackPursuit(object):
 
         x = track_msg.x
         y = track_msg.y
+        rospy.loginfo(track_msg)
+        
         
         lookahead = np.array([x, y])
 
@@ -126,8 +128,13 @@ class TrackPursuit(object):
         # steering angle
         steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
                         / (distance))
-        steer_ang = steer_ang if y >= 0 else -steer_ang
+        rospy.loginfo(y)
+        steer_ang = abs(steer_ang) if y >= 0 else -abs(steer_ang)
+        rospy.loginfo(steer_ang)
         if abs(steer_ang) > np.pi/6.0: steer_ang = np.sign(steer_ang) * np.pi/6.0
+        
+        
+        #steer_ang = np.arctan2(y, x)/2
 
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
