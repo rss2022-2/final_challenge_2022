@@ -212,7 +212,7 @@ class TrackDetector():
             cv.getStructuringElement(cv.MORPH_RECT, (5, 5)),
             iterations=1
         )
-        edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
+        # edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
         edge_image = cv.Canny(edge_image, 50, 150, L2gradient=True)
         return edge_image
 
