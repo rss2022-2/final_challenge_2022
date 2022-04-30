@@ -175,7 +175,7 @@ class TrackDetector():
                 intercept = p1[1] - p1[0]*slope
                 line = [p1, p2]
                 # rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
-                if np.abs(slope) > 0.05:
+                if np.abs(slope) > 0.2:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
                     if left_x < self.pt_left_uv[0]:
 #                        rospy.loginfo("do left")
