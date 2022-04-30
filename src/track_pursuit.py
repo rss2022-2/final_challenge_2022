@@ -25,7 +25,7 @@ class TrackPursuit(object):
         self.track_topic        = rospy.get_param("~track_topic", "/track_line")
         self.visual_topic       = rospy.get_param("~visual_topic", "/track_lane_visualizer")
         self.draw_lines         = rospy.get_param("~draw_lines", True)
-        self.front_point        = 2.5 # look at 2 meters ahead
+        self.front_point        = 3.5 # look at 2 meters ahead
         self.half_track_width   = 0.83 / 2.0
         self.GAIN_P             = 1
         self.WEIGHT_DISTANCE    = 0.7
@@ -162,6 +162,7 @@ class TrackPursuit(object):
 
         # self.drive_msg.drive.speed = self.speed
         # self.drive_msg.drive.steering_angle = pid if (-0.34 <= pid <= 0.34) else -0.34 if pid <= 0 else 0.34
+        rospy.loginfo(self.drive_msg)
         
     @staticmethod
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):
