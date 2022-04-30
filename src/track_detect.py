@@ -114,7 +114,7 @@ class TrackDetector():
             self.debug_pub.publish(debug_msg)
 
         # rospy.loginfo(self.lookahead_msg)
-        if intersect_u is not None or intersect_v is not None:
+        if left_line is not None and right_line is not None:
             self.track_pub.publish(self.lookahead_msg)
     
     @staticmethod
@@ -206,12 +206,13 @@ class TrackDetector():
         edge_image = cv.inRange(edge_image, lower_bound, upper_bound)
         edge_image = cv.dilate(
             edge_image,
-            cv.getStructuringElement(cv.MORPH_RECT, (10, 10)),
+            cv.getStructuringElement(cv.MORPH_RECT, (5, 5)),
             iterations=1
         )
         edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
         edge_image = cv.Canny(edge_image, 50, 150, L2gradient=True)
         return edge_image
+
 #        mask = cv.inRange(edge_image, lower_bound, upper_bound)
 #        mask = cv.dilate(mask, TrackDetector.ELEMENT, iterations=1)
 

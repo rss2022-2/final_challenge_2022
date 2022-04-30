@@ -1,10 +1,12 @@
 <launch>
   <node pkg="final_challenge_2022" type="track_detect.py" name="track_detect" output="screen">
     <rosparam command="load" file="$(find final_challenge_2022)/track_detect_params.yaml"/>
-    <param name="send_debug_image" type="bool" value="true"/>
+    <param name="send_debug_image" type="bool" value="false"/>
   </node>
   
   <node pkg="final_challenge_2022" type="track_pursuit.py" name="track_pursuit" output="screen">
     <rosparam command="load" file="$(find final_challenge_2022)/params.yaml"/>
   </node>
+  
+  <include file="$(find zed_wrapper)/launch/zed.launch"/>
 </launch>

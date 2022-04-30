@@ -16,8 +16,8 @@ pts_ground_plane:
 color_lower_bound: [0, 200, 0]
 color_upper_bound: [255, 255, 255]
 
-pt_left: [0.64, 0.1]
-pt_right: [0.64,-0.1]
+pt_left: [0.64, 0.02]
+pt_right: [0.64,-0.02]
 
 lp_factor: 1
 
