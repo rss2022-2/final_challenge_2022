@@ -51,9 +51,9 @@ class TrackDetector():
         cv.rectangle(image, (0,0), (width, 150), (0,0,0), -1)
         max_lookahead_line = [(0, self.max_lookahead_uv[1]),(width, self.max_lookahead_uv[1])]
         # max_lookahead_line = [(0, height),(width, height)]
-        '''
+        
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
-
+        '''
         # if self.send_debug:
         #     image = cv.bitwise_and(image, image, mask=mask)
 
