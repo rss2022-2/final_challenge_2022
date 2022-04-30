@@ -41,6 +41,14 @@ class TrackDetector():
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
         self.homography_transformer = HomographyTransformer(pts_image_plane, pts_ground_plane)
 
+        # pt_left_uv = self.homography_transformer.transform_xy_to_uv(self.pt_left)
+        # pt_right_uv = self.homography_transformer.transform_xy_to_uv(self.pt_right)
+        # center_bot_uv = (pt_left_uv + pt_right_uv)/2
+        center_xy_bot = (np.array(self.pt_left, dtype=float) + np.array(self.pt_right, dtype=float))/2.0
+        center_xy_top = (np.array(self.pt_left, dtype=float) + np.array(self.pt_right, dtype=float))/2.0
+        center_xy_top[0] = center_xy_top[0] + 2.5
+        self.center_line_xy = [center_xy_bot, center_xy_top]
+
     def image_callback(self, image_msg):
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         height, width, channels = image.shape
@@ -82,6 +90,7 @@ class TrackDetector():
             track_msg.slope_right, track_msg.intercept_right = [float("NaN"), float("NaN")]
 
         if self.send_debug:
+            self.__draw_xy_line(self.center_line_xy, image, (223,124,255))
             debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(debug_msg)
 
