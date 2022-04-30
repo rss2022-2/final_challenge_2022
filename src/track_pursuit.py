@@ -109,13 +109,15 @@ class TrackPursuit(object):
         rospy.loginfo(track_msg)
         x = self.front_point
         if not np.isnan(m_1) and not np.isnan(m_2):
-            if abs(b_1) > abs(b_2):
-                slope = m_2
-                intercept = self.half_track_width + b_2
-            else:
-                slope = m_1
-                intercept = b_1 - self.half_track_width
-            y = slope*x + intercept
+            # if abs(b_1) > abs(b_2):
+            #     slope = m_2
+            #     intercept = self.half_track_width + b_2
+            # else:
+            #     slope = m_1
+            #     intercept = b_1 - self.half_track_width
+            # y = slope*x + intercept
+
+            y = ((m_1 + m_2)*x + (b_1 + b_2)) /2
 
         elif not np.isnan(m_1):
             # slope = m_1
