@@ -89,8 +89,11 @@ class TrackDetector():
             if left_right_intersect[1] > left_lookahead_intersect[1]:
                 intersect_u, intersect_v = left_right_intersect
             else:
-                intersect_u = (left_lookahead_intersect[0] + right_lookahead_intersect[0])/2
-                intersect_v = self.max_lookahead_uv[1]
+                # intersect_u = (left_lookahead_intersect[0] + right_lookahead_intersect[0])/2
+                left_lookahead_intersect_xy = self.homography_transformer.transform_uv_to_xy(left_lookahead_intersect)
+                right_lookahead_intersect_xy = self.homography_transformer.transform_uv_to_xy(right_lookahead_intersect)
+                center_lookahead_intersect_xy = (left_lookahead_intersect_xy + right_lookahead_intersect_xy)/2.0
+                intersect_u, intersect_v = self.homography_transformer.transform_xy_to_uv(center_lookahead_intersect_xy)
 
         if intersect_u is not None:
             x, y = self.homography_transformer.transform_uv_to_xy((intersect_u, intersect_v))

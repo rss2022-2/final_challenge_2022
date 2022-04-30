@@ -38,7 +38,7 @@ class HomographyTransformer:
         homogeneous_xy = xy * scaling_factor
         x = homogeneous_xy[0, 0]
         y = homogeneous_xy[1, 0]
-        return [x, y]
+        return np.array([x, y], float)
 
     def transform_xy_to_uv(self, point):
         x, y = point
