@@ -175,7 +175,7 @@ class Drive:
     def pure_pursuit(self, lookahead):
         if lookahead[0] == -1 and lookahead[1] == -1:
             rospy.loginfo("go back")
-            return (-self.speed, 0.0)
+            return (-self.speed*2, 0.0)
 
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
