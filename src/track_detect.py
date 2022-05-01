@@ -42,7 +42,7 @@ class TrackDetector():
             rospy.loginfo("Track detector with debug")
             self.debug_pub = rospy.Publisher(debug_topic, Image, queue_size=1)
         self.track_pub = rospy.Publisher(track_topic, Lookahead, queue_size=1)
-        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_callback)
+        self.image_sub = rospy.Subscriber(image_topic, Image, self.image_callback, queue_size=1)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
     def image_callback(self, image_msg):
