@@ -117,7 +117,6 @@ class TrackDetector():
         if left_line is not None and right_line is not None:
             self.track_pub.publish(self.lookahead_msg)
 
-        self.track_pub.publish(self.lookahead_msg)
     
     @staticmethod
     def __lp(value, new_value, factor):
