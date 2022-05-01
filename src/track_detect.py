@@ -53,7 +53,7 @@ class TrackDetector():
         # max_lookahead_line = [(0, height),(width, height)]
         
         lines, mask = TrackDetector.__get_hough_lines(image, self.lower_bound, self.upper_bound, cv.COLOR_BGR2HLS)
-        '''
+        
         # if self.send_debug:
         #     image = cv.bitwise_and(image, image, mask=mask)
 
@@ -116,7 +116,6 @@ class TrackDetector():
         # rospy.loginfo(self.lookahead_msg)
         if left_line is not None and right_line is not None:
             self.track_pub.publish(self.lookahead_msg)
-        '''
 
         self.track_pub.publish(self.lookahead_msg)
     
