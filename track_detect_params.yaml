@@ -19,6 +19,6 @@ color_upper_bound: [255, 255, 255]
 pt_left: [0.64, 0.02]
 pt_right: [0.64,-0.02]
 
-lp_factor: 1
+lp_factor: 0.5
 
 max_lookahead: 2.5
