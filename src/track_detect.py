@@ -233,7 +233,8 @@ class TrackDetector():
     @staticmethod
     def __get_hough_lines(image, lower_bound, upper_bound, code=None):
         dst = TrackDetector.__get_outline_image(image, lower_bound, upper_bound, code)
-        return cv.HoughLinesP(dst, 1, np.pi / 720, 100, None, 20, 10), dst
+        return [None, None]
+        # return cv.HoughLinesP(dst, 1, np.pi / 720, 100, None, 20, 10), dst
 
     #Adapted from https://www.geeksforgeeks.org/minimum-distance-from-a-point-to-the-line-segment-using-vectors/
     @staticmethod
