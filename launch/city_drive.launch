@@ -1,11 +1,11 @@
 <launch>
   <node pkg="final_challenge_2022" name="drive" type="drive.py" output="screen">
-  	<param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
+  	<param name="drive_topic" value="/drive" />
   </node>
 
-  <node pkg="visual_servoing" name="cone_detector" type="cone_detector.py" output="screen">
+  <node pkg="final_challenge_2022" name="line_detector" type="line_detector.py" output="screen">
   </node>
 
-  <node pkg="visual_servoing" name="homography_transformer" type="homography_transformer.py" output="screen">
+  <node pkg="final_challenge_2022" name="homography_transformer" type="homography_transformer.py" output="screen">
   </node>
 </launch>

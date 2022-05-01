@@ -15,7 +15,7 @@ class Drive:
         self.cone_sub = rospy.Subscriber("/relative_cone", ConeLocation, self.relative_cone_callback)
         self.drive_message = AckermannDriveStamped()
 
-        self.parking_distance = .75 # meters; try playing with this number!
+        self.parking_distance = .3 # meters; try playing with this number!
         self.relative_x = 0
         self.relative_y = 0
 
@@ -35,7 +35,7 @@ class Drive:
         self.I_sum = 0
 
         self.P_ang = 1
-        self.D_ang = 0.2
+        self.D_ang = 2
 
         self.slow = 0.2
         self.avg = 0.5
@@ -44,6 +44,13 @@ class Drive:
         self.stop_signal = 0
         self.prev_time = time.time() # For PID controller
         self.stop_time = time.time() # Measures time to stop at sign
+
+        # pure pursuit params:
+        self.speed              = rospy.get_param("~speed", 0.5)
+        self.wheelbase_length   = rospy.get_param("~wheelbase_length", 0.3)
+        self.small_angle        = rospy.get_param("~small_steering_angle", 0.01)
+        self.point_car          = np.array([0, 0])
+        self.car_unit_vec       = np.array([1, 0])
 
     def stop_callback(self, msg):
         """ Classes:
@@ -95,11 +102,16 @@ class Drive:
             self.I_sum = -self.velocity
 
         #update drive message
-        levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
+        # use PID
+        # levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
+        
+        # use pure pursuit
+        levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
+
         self.prev_dist_err = dist_err
         self.last_time = current_time
         levi.drive.acceleration = 0
-        levi.drive.steering_angle_velocity = 0.5
+        # levi.drive.steering_angle_velocity = 0.5
         levi.drive.jerk = 0.1
         levi.header.stamp = rospy.Time.now()
         self.drive_pub.publish(levi)
@@ -159,6 +171,25 @@ class Drive:
             steering_angle = self.direction*(P_ang + D_ang) if abs(angle) > self.angle_tolerance else 0
 
             return (speed, steering_angle)
+
+    def pure_pursuit(self, lookahead):
+        ## find distance between car and lookahead
+        lookahead_vec = lookahead - self.point_car
+        distance = np.linalg.norm(lookahead_vec)
+
+        ## find alpha: angle of the car to lookahead point
+        lookahead_unit_vec = lookahead_vec / distance
+        dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
+        dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
+        assert -1 <= dot_product <= 1, dot_product
+        alpha = np.arccos(dot_product)
+
+        # steering angle
+        steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
+                        / (distance))
+        steer_ang = abs(steer_ang) if lookahead[1] >= 0 else -abs(steer_ang)
+        rospy.loginfo(steer_ang)
+        return (self.speed, steer_ang)
 
     def drive_controller(self):
         if self.stop_signal == 0:
