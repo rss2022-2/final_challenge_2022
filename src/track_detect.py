@@ -207,28 +207,28 @@ class TrackDetector():
         if code is not None:
             edge_image = cv.cvtColor(edge_image, code)
         
-        # edge_image = cv.inRange(edge_image, lower_bound, upper_bound)
-        # edge_image = cv.dilate(
-        #     edge_image,
-        #     cv.getStructuringElement(cv.MORPH_RECT, (5, 5)),
-        #     iterations=1
-        # )
-        # # edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
-        # edge_image = cv.Canny(edge_image, 50, 150, L2gradient=True)
-        # return edge_image
+        edge_image = cv.inRange(edge_image, lower_bound, upper_bound)
+        edge_image = cv.dilate(
+            edge_image,
+            cv.getStructuringElement(cv.MORPH_RECT, (5, 5)),
+            iterations=1
+        )
+        # edge_image = cv.GaussianBlur(edge_image, (51, 51), 1)
+        edge_image = cv.Canny(edge_image, 50, 150, L2gradient=True)
+        return edge_image
 
-        mask = cv.inRange(edge_image, lower_bound, upper_bound)
-        mask = cv.dilate(mask, TrackDetector.ELEMENT, iterations=1)
+        # mask = cv.inRange(edge_image, lower_bound, upper_bound)
+        # mask = cv.dilate(mask, TrackDetector.ELEMENT, iterations=1)
 
-        skel = np.zeros(mask.shape, dtype=np.uint8)
-        while(cv.countNonZero(mask) != 0):
-            eroded = cv.erode(mask, TrackDetector.ELEMENT)
-            temp = cv.dilate(eroded, TrackDetector.ELEMENT)
-            temp = cv.subtract(mask, temp)
-            skel = cv.bitwise_or(skel, temp)
-            mask = eroded
+        # skel = np.zeros(mask.shape, dtype=np.uint8)
+        # while(cv.countNonZero(mask) != 0):
+        #     eroded = cv.erode(mask, TrackDetector.ELEMENT)
+        #     temp = cv.dilate(eroded, TrackDetector.ELEMENT)
+        #     temp = cv.subtract(mask, temp)
+        #     skel = cv.bitwise_or(skel, temp)
+        #     mask = eroded
 
-        return skel
+        # return skel
 
     @staticmethod
     def __get_hough_lines(image, lower_bound, upper_bound, code=None):
