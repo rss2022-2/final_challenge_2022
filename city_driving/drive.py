@@ -173,6 +173,10 @@ class Drive:
             return (speed, steering_angle)
 
     def pure_pursuit(self, lookahead):
+        if lookahead[0] == -1 and lookahead[1] == -1:
+            rospy.loginfo("go back")
+            return (-self.speed, 0.0)
+
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
         distance = np.linalg.norm(lookahead_vec)

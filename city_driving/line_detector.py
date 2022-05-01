@@ -70,6 +70,12 @@ class LineDetector():
 
         except:
             rospy.loginfo("No cone detected!")
+            cone_loc_pixel_msg = ConeLocationPixel()
+
+            cone_loc_pixel_msg.u = -1
+            cone_loc_pixel_msg.v = -1
+        
+            self.cone_pub.publish(cone_loc_pixel_msg)
 
 if __name__ == '__main__':
     try:
