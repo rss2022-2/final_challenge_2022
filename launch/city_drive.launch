@@ -1,6 +1,6 @@
 <launch>
   <node pkg="final_challenge_2022" name="drive" type="drive.py" output="screen">
-  	<param name="drive_topic" value="/drive" />
+  	<param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
   </node>
 
   <node pkg="final_challenge_2022" name="line_detector" type="line_detector.py" output="screen">
@@ -8,4 +8,6 @@
 
   <node pkg="final_challenge_2022" name="homography_transformer" type="homography_transformer.py" output="screen">
   </node>
+
+  <include file="$(find zed_wrapper)/launch/zed.launch"/>
 </launch>

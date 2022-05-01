@@ -103,7 +103,7 @@ class Drive:
 
         #update drive message
         # use PID
-        # levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
+        #levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
         
         # use pure pursuit
         levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
@@ -187,8 +187,11 @@ class Drive:
         # steering angle
         steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
                         / (distance))
+        steer_ang = alpha
+        if steer_ang > 0.25: steer_ang = np.pi
         steer_ang = abs(steer_ang) if lookahead[1] >= 0 else -abs(steer_ang)
         rospy.loginfo(steer_ang)
+        
         return (self.speed, steer_ang)
 
     def drive_controller(self):
