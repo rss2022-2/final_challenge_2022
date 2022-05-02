@@ -64,14 +64,21 @@ class Drive:
             if curr_time - self.stop_time > 1:
                 self.stop_signal = 2
         else:
-            if distance > 1:
+            if distance == -1:
                 self.stop_signal = 0
-            elif (distance > 0.75 or distance < 1):
+            else:
                 if self.stop_signal != 2:
                     self.stop_signal = 1
-                    self.stop_time = time.time()
-            elif distance < 0.75:
-                self.stop_signal = 2
+                    self.stop_time = time.time()    
+                               
+            # if distance > 1:
+            #     self.stop_signal = 0
+            # elif (distance > 0.75 or distance < 1):
+            #     if self.stop_signal != 2:
+            #         self.stop_signal = 1
+            #         self.stop_time = time.time()
+            # elif distance < 0.75:
+            #     self.stop_signal = 2
 
     def relative_cone_callback(self, msg):
         self.relative_x = msg.x_pos
