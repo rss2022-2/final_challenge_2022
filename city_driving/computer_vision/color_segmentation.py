@@ -36,7 +36,7 @@ def cd_color_segmentation(img, template):
 	########## YOUR CODE STARTS HERE ##########
 
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-	COLOR_MIN = np.array([0, 160, 155],np.uint8)
+	COLOR_MIN = np.array([10, 160, 155],np.uint8)
 	COLOR_MAX = np.array([25, 255, 255],np.uint8)
 	frame_threshed = cv2.inRange(hsv_img, COLOR_MIN, COLOR_MAX)
 	imgray = frame_threshed

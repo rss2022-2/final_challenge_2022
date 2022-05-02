@@ -46,7 +46,7 @@ class Drive:
         self.stop_time = time.time() # Measures time to stop at sign
 
         # pure pursuit params:
-        self.speed              = rospy.get_param("~speed", 0.5)
+        self.speed              = rospy.get_param("~speed", 1.0)
         self.wheelbase_length   = rospy.get_param("~wheelbase_length", 0.3)
         self.small_angle        = rospy.get_param("~small_steering_angle", 0.01)
         self.point_car          = np.array([0, 0])
@@ -175,7 +175,7 @@ class Drive:
     def pure_pursuit(self, lookahead):
         if lookahead[0] == -1 and lookahead[1] == -1:
             rospy.loginfo("go back")
-            return (-self.speed*2, 0.0)
+            return (-self.speed, 0.0)
 
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
