@@ -55,26 +55,23 @@ class Drive:
     def stop_callback(self, msg):
         """ Classes:
             0: Keep going
-            1: Slow down 
-            2: Stop 
-            3: Resume driving
+            1: Stop 
+            2: Resume driving
         """
         distance = msg.data
-        if self.stop_signal == 2:
+        if self.stop_signal == 1:
             curr_time = time.time()
             if curr_time - self.stop_time > 1:
-                self.stop_signal = 3
+                self.stop_signal = 2
         else:
-            if distance > 5:
+            if distance > 1:
                 self.stop_signal = 0
-            elif (distance > 0.9 or distance < 5):
-                self.stop_signal = 1
-            elif (distance > 0.75 or distance < 0.9):
-                if self.stop_signal != 3:
-                    self.stop_signal = 2
+            elif (distance > 0.75 or distance < 1):
+                if self.stop_signal != 2:
+                    self.stop_signal = 1
                     self.stop_time = time.time()
             elif distance < 0.75:
-                self.stop_signal = 3
+                self.stop_signal = 2
 
     def relative_cone_callback(self, msg):
         self.relative_x = msg.x_pos
@@ -203,12 +200,9 @@ class Drive:
             self.create_message(self.avg, self.steering_angle)
             self.drive_pub.publish(self.drive_message)
         elif self.stop_signal == 1:
-            self.create_message(self.slow, self.steering_angle)
-            self.drive_pub.publish(self.drive_message)
-        elif self.stop_signal == 2:
             self.create_message(0, 0)
             self.drive_pub.publish(self.drive_message)
-        elif self.stop_signal == 3:
+        elif self.stop_signal == 2:
             self.create_message(self.slow, self.steering_angle)
             self.drive_pub.publish(self.drive_message)
 
