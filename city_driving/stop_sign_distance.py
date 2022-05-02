@@ -2,16 +2,18 @@
 
 import rospy
 from std_msgs.msg import Float32MultiArray
-from final_challenge_2022.msg import StopSignDistance
+from std_msgs.msg import Float32
 
-class StopSignDistance():
-
+class StopSign:
     def __init__(self):
         self.distance_topic = "/stop_sign_distance"
         self.bbox_topic = "/stop_sign_bbox"
 
         self.bbox_sub = rospy.Subscriber(self.bbox_topic, Float32MultiArray, self.bbox_callback)
-        self.distance_pub = rospy.Publisher(self.distance_topic, StopSignDistance, queue_size=10)
+        self.distance_pub = rospy.Publisher(self.distance_topic, Float32, queue_size=10)
+
+        self.MIN_AREA = 3000
+        self.MAX_AREA = 3500 
 
     def bbox_callback(self, msg):
         top_left_x = msg.data[0]
@@ -20,15 +22,14 @@ class StopSignDistance():
         bot_right_y = msg.data[3]
 
         area = (bot_right_x - top_left_x)*(bot_right_y - top_left_y)
-        see_stop_sign = StopSignDistance()
-        if (3000 <= area <= 3500):
-            see_stop_sign.distance = 1
+        if (self.MIN_AREA <= area <= self.MAX_AREA):
+            see_stop_sign = 1
         else:
-            see_stop_sign.distance = -1
+            see_stop_sign = -1
         
         self.distance_pub.publish(see_stop_sign)
 
 if __name__=="__main__":
     rospy.init_node("stop_sign_distance")
-    StopSignDistance = StopSignDistance()
+    stop_sign = StopSign()
     rospy.spin()

@@ -110,7 +110,10 @@ class Drive:
         #levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
         
         # use pure pursuit
-        levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
+        if self.stop_signal != 1:
+            levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
+        else:
+            levi.drive.speed, levi.drive.steering_angle = (0, 0) #stop for stop sign
 
         self.prev_dist_err = dist_err
         self.last_time = current_time
