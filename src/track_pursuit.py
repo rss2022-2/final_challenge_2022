@@ -48,7 +48,7 @@ class TrackPursuit(object):
         self.point_car          = np.array([0, 0])
         self.car_unit_vec       = np.array([1, 0])
 
-        rospy.Timer(rospy.Duration(1.0/20.0), self.send_cmd)
+        # rospy.Timer(rospy.Duration(1.0/20.0), self.send_cmd)
 
     def send_cmd(self, event):
         self.drive_msg.header.stamp = rospy.Time.now()
@@ -136,12 +136,11 @@ class TrackPursuit(object):
         # if x > 4 : x = 4
         # if x < 3 : x = 3
         lookahead = np.array([x, y])
-        rospy.loginfo([x,y])
 
         ## find distance between car and lookahead
         lookahead_vec = lookahead - self.point_car
         distance = np.linalg.norm(lookahead_vec)
-        
+
         ## find alpha: angle of the car to lookahead point
         lookahead_unit_vec = lookahead_vec / distance
         dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
@@ -152,17 +151,17 @@ class TrackPursuit(object):
         # steering angle
         steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
                         / (distance))
-        steer_ang = steer_ang if y >= 0 else -steer_ang
+        steer_ang = abs(steer_ang) if y >= 0 else -abs(steer_ang)
+        rospy.loginfo(steer_ang)
+        #if abs(steer_ang) > np.pi/6.0: steer_ang = np.sign(steer_ang) * np.pi/6.0
 
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
         # optimization: run fast if steer_ang is small
-        self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
+        # self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
+        self.drive_msg.drive.speed = self.speed
         self.drive_msg.drive.steering_angle = steer_ang
-
-        # self.drive_msg.drive.speed = self.speed
-        # self.drive_msg.drive.steering_angle = pid if (-0.34 <= pid <= 0.34) else -0.34 if pid <= 0 else 0.34
-        rospy.loginfo(self.drive_msg)
+        self.send_cmd(None)
         
     @staticmethod
     def __draw_line(slope, y_intercept, publisher, frame = "/base_link"):
