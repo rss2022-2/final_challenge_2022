@@ -113,6 +113,7 @@ class Drive:
         if self.stop_signal != 1:
             levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
         else:
+            rospy.loginfo("stop for stop sign!")
             levi.drive.speed, levi.drive.steering_angle = (0, 0) #stop for stop sign
 
         self.prev_dist_err = dist_err
@@ -201,7 +202,7 @@ class Drive:
         steer_ang = alpha
         if steer_ang > 0.25: steer_ang = np.pi
         steer_ang = abs(steer_ang) if lookahead[1] >= 0 else -abs(steer_ang)
-        rospy.loginfo(steer_ang)
+        # rospy.loginfo(steer_ang)
         
         return (self.speed, steer_ang)
 
