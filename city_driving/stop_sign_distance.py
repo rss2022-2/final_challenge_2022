@@ -12,8 +12,8 @@ class StopSign:
         self.bbox_sub = rospy.Subscriber(self.bbox_topic, Float32MultiArray, self.bbox_callback)
         self.distance_pub = rospy.Publisher(self.distance_topic, Float32, queue_size=10)
 
-        self.MIN_AREA = 3000
-        self.MAX_AREA = 3500 
+        self.MIN_AREA = 1500
+        self.MAX_AREA = 6500 
 
     def bbox_callback(self, msg):
         if len(msg.data) == 0:

@@ -59,12 +59,13 @@ class Drive:
             2: Resume driving
         """
         distance = msg.data
+        rospy.loginfo(self.stop_signal)
         if self.stop_signal == 1:
             curr_time = time.time()
             if curr_time - self.stop_time > 1:
                 self.stop_signal = 2
         else:
-            if distance == -1:
+            if distance == -1 or self.stop_signal == 2:
                 self.stop_signal = 0
             else:
                 if self.stop_signal != 2:
