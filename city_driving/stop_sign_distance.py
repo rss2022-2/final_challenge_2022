@@ -16,6 +16,11 @@ class StopSign:
         self.MAX_AREA = 3500 
 
     def bbox_callback(self, msg):
+        if len(msg.data) == 0:
+            see_stop_sign = -1
+            self.distance_pub.publish(see_stop_sign)
+            return
+            
         top_left_x = msg.data[0]
         top_left_y = msg.data[1]
         bot_right_x = msg.data[2]
