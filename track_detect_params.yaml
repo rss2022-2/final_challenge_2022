@@ -21,4 +21,4 @@ pt_right: [0.64,-0.02]
 
 lp_factor: 0.5
 
-max_lookahead: 2.5
+max_lookahead: 2

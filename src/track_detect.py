@@ -114,7 +114,7 @@ class TrackDetector():
             self.debug_pub.publish(debug_msg)
 
         # rospy.loginfo(self.lookahead_msg)
-        if left_line is not None and right_line is not None:
+        if left_line is not None or right_line is not None:
             self.track_pub.publish(self.lookahead_msg)
 
     
@@ -176,7 +176,7 @@ class TrackDetector():
                 intercept = p1[1] - p1[0]*slope
                 line = [p1, p2]
                 # rospy.loginfo("slope: %f, intercept: %f" % (slope, intercept))
-                if np.abs(slope) > 0.3:
+                if np.abs(slope) > 0.4:
                     left_x = (self.pt_left_uv[1]-intercept)/slope
                     if left_x < self.pt_left_uv[0]:
 #                        rospy.loginfo("do left")

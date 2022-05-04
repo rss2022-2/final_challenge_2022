@@ -136,8 +136,8 @@ class TrackPursuit(object):
         # publish drive commands
         self.drive_msg = AckermannDriveStamped()
         # optimization: run fast if steer_ang is small
-        # self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
-        self.drive_msg.drive.speed = self.speed
+        self.drive_msg.drive.speed = self.fast_speed if abs(steer_ang) <= self.small_angle else self.speed
+        # self.drive_msg.drive.speed = self.speed
         self.drive_msg.drive.steering_angle = steer_ang
         self.send_cmd(None)
         
