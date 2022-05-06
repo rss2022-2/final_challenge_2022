@@ -15,7 +15,7 @@ class Drive:
         self.cone_sub = rospy.Subscriber("/relative_cone", ConeLocation, self.relative_cone_callback)
         self.drive_message = AckermannDriveStamped()
 
-        self.parking_distance = .75 # meters; try playing with this number!
+        self.parking_distance = .3 # meters; try playing with this number!
         self.relative_x = 0
         self.relative_y = 0
 
@@ -35,7 +35,7 @@ class Drive:
         self.I_sum = 0
 
         self.P_ang = 1
-        self.D_ang = 0.2
+        self.D_ang = 2
 
         self.slow = 0.2
         self.avg = 0.5
@@ -45,29 +45,41 @@ class Drive:
         self.prev_time = time.time() # For PID controller
         self.stop_time = time.time() # Measures time to stop at sign
 
+        # pure pursuit params:
+        self.speed              = rospy.get_param("~speed", 1.0)
+        self.wheelbase_length   = rospy.get_param("~wheelbase_length", 0.3)
+        self.small_angle        = rospy.get_param("~small_steering_angle", 0.01)
+        self.point_car          = np.array([0, 0])
+        self.car_unit_vec       = np.array([1, 0])
+
     def stop_callback(self, msg):
         """ Classes:
             0: Keep going
-            1: Slow down 
-            2: Stop 
-            3: Resume driving
+            1: Stop 
+            2: Resume driving
         """
         distance = msg.data
-        if self.stop_signal == 2:
+        rospy.loginfo(self.stop_signal)
+        if self.stop_signal == 1:
             curr_time = time.time()
             if curr_time - self.stop_time > 1:
-                self.stop_signal = 3
+                self.stop_signal = 2
         else:
-            if distance > 5:
+            if distance == -1 or self.stop_signal == 2:
                 self.stop_signal = 0
-            elif (distance > 0.9 or distance < 5):
-                self.stop_signal = 1
-            elif (distance > 0.75 or distance < 0.9):
-                if self.stop_signal != 3:
-                    self.stop_signal = 2
-                    self.stop_time = time.time()
-            elif distance < 0.75:
-                self.stop_signal = 3
+            else:
+                if self.stop_signal != 2:
+                    self.stop_signal = 1
+                    self.stop_time = time.time()    
+                               
+            # if distance > 1:
+            #     self.stop_signal = 0
+            # elif (distance > 0.75 or distance < 1):
+            #     if self.stop_signal != 2:
+            #         self.stop_signal = 1
+            #         self.stop_time = time.time()
+            # elif distance < 0.75:
+            #     self.stop_signal = 2
 
     def relative_cone_callback(self, msg):
         self.relative_x = msg.x_pos
@@ -95,11 +107,20 @@ class Drive:
             self.I_sum = -self.velocity
 
         #update drive message
-        levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
+        # use PID
+        #levi.drive.speed, levi.drive.steering_angle = self.controller(dist_err, angle, delta_t)
+        
+        # use pure pursuit
+        if self.stop_signal != 1:
+            levi.drive.speed, levi.drive.steering_angle = self.pure_pursuit(np.array([self.relative_x, self.relative_y]))
+        else:
+            rospy.loginfo("stop for stop sign!")
+            levi.drive.speed, levi.drive.steering_angle = (0, 0) #stop for stop sign
+
         self.prev_dist_err = dist_err
         self.last_time = current_time
         levi.drive.acceleration = 0
-        levi.drive.steering_angle_velocity = 0.5
+        # levi.drive.steering_angle_velocity = 0.5
         levi.drive.jerk = 0.1
         levi.header.stamp = rospy.Time.now()
         self.drive_pub.publish(levi)
@@ -160,17 +181,40 @@ class Drive:
 
             return (speed, steering_angle)
 
+    def pure_pursuit(self, lookahead):
+        if lookahead[0] == -1 and lookahead[1] == -1:
+            rospy.loginfo("go back")
+            return (-self.speed, 0.0)
+
+        ## find distance between car and lookahead
+        lookahead_vec = lookahead - self.point_car
+        distance = np.linalg.norm(lookahead_vec)
+
+        ## find alpha: angle of the car to lookahead point
+        lookahead_unit_vec = lookahead_vec / distance
+        dot_product = np.dot(self.car_unit_vec, lookahead_unit_vec)
+        dot_product = max(-1, dot_product) if dot_product < 0 else min(1, dot_product)
+        assert -1 <= dot_product <= 1, dot_product
+        alpha = np.arccos(dot_product)
+
+        # steering angle
+        steer_ang = np.arctan(2*self.wheelbase_length*np.sin(alpha)
+                        / (distance))
+        steer_ang = alpha
+        if steer_ang > 0.25: steer_ang = np.pi
+        steer_ang = abs(steer_ang) if lookahead[1] >= 0 else -abs(steer_ang)
+        # rospy.loginfo(steer_ang)
+        
+        return (self.speed, steer_ang)
+
     def drive_controller(self):
         if self.stop_signal == 0:
             self.create_message(self.avg, self.steering_angle)
             self.drive_pub.publish(self.drive_message)
         elif self.stop_signal == 1:
-            self.create_message(self.slow, self.steering_angle)
-            self.drive_pub.publish(self.drive_message)
-        elif self.stop_signal == 2:
             self.create_message(0, 0)
             self.drive_pub.publish(self.drive_message)
-        elif self.stop_signal == 3:
+        elif self.stop_signal == 2:
             self.create_message(self.slow, self.steering_angle)
             self.drive_pub.publish(self.drive_message)
 
