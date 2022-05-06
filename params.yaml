@@ -1,0 +1,23 @@
+speed: 4
+
+fast_speed: 4
+
+# lookahead: 1.0
+
+# lookahead_increase: 0.5
+
+wheelbase_length: 0.3
+
+small_steering_angle: 0.01
+
+# odom_topic: "/pf/pose/odom"
+
+drive_topic: "/vesc/ackermann_cmd_mux/input/navigation"
+
+# drive_topic: "/drive"
+
+visual_topic: "/track_lane_visualizer"
+
+track_topic: "/track_topic" #TODO: ask Quang
+
+draw_lines: True
